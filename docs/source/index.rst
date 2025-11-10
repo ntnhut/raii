@@ -27,3 +27,4 @@ Please feel free to reach out!
 
    intro
    resource_management
+   principle

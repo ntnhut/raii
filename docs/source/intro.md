@@ -1,4 +1,4 @@
-# 1. Introduction to RAII
+# Introduction to RAII
 
 ## What is RAII?
 
@@ -37,8 +37,7 @@ Here, `std::ofstream` is a perfect example of RAII:
 You don’t need to manually call `close()`, even if an exception occurs.
 That’s the magic — **automatic and exception-safe cleanup**.
 
----
-
+ 
 ## Why does RAII matter?
 
 Before RAII became widespread, manual resource management often looked like this:
@@ -59,8 +58,7 @@ In long-running applications or systems programming, even small leaks can accumu
 RAII eliminates that class of errors.
 Once you wrap a resource in an object that handles acquisition and release in its constructor/destructor, cleanup is guaranteed.
 
----
-
+ 
 ## A bit of history
 
 The RAII idiom originated in the early 1990s with **Bjarne Stroustrup**, the creator of C++, as part of the language’s philosophy of combining **efficiency** and **safety**.
@@ -70,8 +68,7 @@ RAII became a cornerstone of modern C++ idioms, especially after the introductio
 
 In fact, many core parts of the C++ Standard Library — containers, streams, and synchronization primitives — all follow RAII under the hood.
 
----
-
+ 
 ## Why C++ Is Perfect for RAII
 
 C++ provides **deterministic object lifetime** — objects are destroyed exactly when they go out of scope. This property makes it ideal for RAII.
@@ -95,8 +92,7 @@ void safeIncrement(int& counter) {
 `std::lock_guard` acquires the mutex in its constructor and releases it in its destructor.
 You don’t need to worry about unlocking — even if an exception is thrown, the lock will be released properly.
 
----
-
+ 
 ## Key takeaways
 
 * **RAII binds resources to object lifetimes**, ensuring automatic release.

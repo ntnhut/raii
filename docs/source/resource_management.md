@@ -1,4 +1,4 @@
-# 2. Understanding Resource Management Challenges
+# Understanding Resource Management Challenges
 
 Before we can appreciate the elegance of RAII, it helps to understand *why* resource management is such a problem in the first place.
 
