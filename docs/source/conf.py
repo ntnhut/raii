@@ -13,12 +13,12 @@
 
 # PygmentsBridge.latex_formatter = CustomLatexFormatter
 
-project = 'CppPro'
-copyright = '2023, Nhut Nguyen'
+project = 'RAII'
+copyright = '2025, Nhut Nguyen'
 author = 'Nhut Nguyen'
 
-release = '0.1'
-version = '0.1.1'
+# release = '0.1'
+# version = '0.1.1'
 
 # -- General configuration
 
@@ -62,12 +62,12 @@ source_suffix = {
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    'papersize': 'letterpaper',
+    # 'papersize': 'letterpaper',
     'sphinxsetup': 'hmargin={1.2in,1.2in}, vmargin={1.2in,1.2in}',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
-    'pointsize': '12pt',
+    'pointsize': '10pt',
 
     # Additional stuff for the LaTeX preamble.
     #
@@ -88,7 +88,7 @@ latex_show_urls = 'footnote'
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CppPro.tex', 'C++ Software Development Like A Pro',
+    (master_doc, 'raii.tex', 'Resource Acquisition Is Initialization in C++',
      'Nhut Nguyen, Ph. D.', 'book'),
 ]
 latex_docclass = {
