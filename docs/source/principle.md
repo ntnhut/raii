@@ -10,7 +10,7 @@ At its heart, RAII is based on two simple but powerful principles:
 Let’s unpack these ideas.
 
 
-## 1. Resource ownership follows object lifetime
+## Resource ownership follows object lifetime
 
 In C++, every object has a **lifetime** — it begins when the object is constructed and ends when it goes out of scope or is destroyed.
 
@@ -31,7 +31,7 @@ When `file` goes out of scope at the closing brace, its destructor closes the fi
 When an object’s scope ends, C++ guarantees that its destructor will run.
 That makes RAII deterministic — you always know *when* the cleanup happens.
 
-## 2. Constructor acquires, destructor releases
+## Constructor acquires, destructor releases
 
 The second principle defines *how* RAII works internally:
 
@@ -77,7 +77,7 @@ You never have to remember `fclose()`.
 The **compiler guarantees** the cleanup.
 
  
-## 3. Deterministic destruction and stack unwinding
+## Deterministic destruction and stack unwinding
 
 One of C++’s strongest features — and what makes RAII possible — is **deterministic destruction**.
 
@@ -126,7 +126,7 @@ That’s stack unwinding in action — **automatic cleanup of all local objects*
 This property is what makes RAII exceptionally reliable.
 
  
-## 4. RAII is about ownership, not just cleanup
+## RAII is about ownership, not just cleanup
 
 A common misconception is that RAII is only about calling `delete` or `close()` automatically.
 
@@ -150,7 +150,7 @@ Ownership semantics are critical in large codebases where multiple parts of the 
 RAII formalizes these relationships through object lifetimes.
 
  
-## 5. Composition and resource hierarchies
+## Composition and resource hierarchies
 
 RAII scales beautifully.
 
@@ -185,7 +185,7 @@ When `SafeLogger` is destroyed:
 You get **layered safety** for free.
 
  
-## 6. Exception safety and predictability
+## Exception safety and predictability
 
 RAII is the foundation of **exception-safe programming** in C++.
 
