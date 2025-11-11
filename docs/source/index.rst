@@ -19,3 +19,4 @@ Resource Acquisition Is Initialization in C++
    advanced
    large_scale
    testing
+   debug_checklist
