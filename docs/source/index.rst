@@ -15,3 +15,4 @@ Resource Acquisition Is Initialization in C++
    examples
    benefits
    patterns
+   pitfalls

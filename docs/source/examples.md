@@ -16,7 +16,7 @@ Before C++11, forgetting a `delete` was a frequent source of leaks and crashes.
 Containers like `std::vector` and `std::string` solve this problem by managing heap memory automatically — perfect examples of RAII in practice.
 
  
-### Example 1.1: `std::vector`
+### Example: `std::vector`
 
 ```cpp
 #include <vector>
@@ -39,7 +39,7 @@ Behind the scenes:
 This is classic RAII — safe and automatic memory management.
 
  
-### Example 1.2: `std::string`
+### Example: `std::string`
 
 ```cpp
 #include <string>
@@ -63,7 +63,7 @@ No leaks, no dangling pointers — all managed by the destructor.
 Managing file handles manually often leads to leaks when exceptions or early returns happen.
 `std::ifstream`, `std::ofstream`, and `std::fstream` are RAII wrappers around file descriptors.
 
-### Example 2.1: file stream RAII
+### Example: File stream RAII
 
 ```cpp
 #include <fstream>
@@ -89,7 +89,7 @@ Manually calling `lock()` and `unlock()` can easily cause deadlocks if the unloc
 
 RAII solves this neatly with `std::lock_guard` and `std::unique_lock`.
 
-### Example 3.1: lock management with RAII
+### Example: Lock management with RAII
 
 ```cpp
 #include <mutex>
@@ -105,7 +105,7 @@ void safeIncrement(int& counter) {
 Even if an exception occurs inside the critical section, the lock is released automatically when `lock_guard` is destroyed.
 
  
-### Example 3.2: more flexible locks
+### Example: More flexible locks
 
 `std::unique_lock` provides more flexibility than `std::lock_guard`, such as deferred locking or manual unlock.
 
@@ -129,7 +129,7 @@ Before C++11, developers had to manage heap memory manually with `new` and `dele
 Now, smart pointers like `std::unique_ptr` and `std::shared_ptr` encapsulate ownership semantics and automatic destruction.
 
  
-### Example 4.1: `std::unique_ptr`
+### Example: `std::unique_ptr`
 
 `std::unique_ptr` represents exclusive ownership.
 
@@ -155,7 +155,7 @@ auto b = std::move(a); // ownership transferred
 ```
 
  
-### Example 4.2: `std::shared_ptr`
+### Example: `std::shared_ptr`
 
 `std::shared_ptr` allows **shared ownership** of a resource.
 
@@ -191,7 +191,7 @@ RAII ensures correct destruction only when no one is using the resource anymore.
 
 You can create your own RAII utilities for non-traditional resources — like timing a scope or logging events.
 
-### Example 5.1: `ScopedTimer`
+### Example: `ScopedTimer`
 
 ```cpp
 #include <chrono>

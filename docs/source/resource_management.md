@@ -31,7 +31,7 @@ Both can be disastrous.
 
 Let’s look at what can go wrong when resources are managed manually.
 
-### 1. Forgetting to release a resource
+### Forgetting to release a resource
 
 This is the classic memory or handle leak. Consider:
 
@@ -51,7 +51,7 @@ If `fclose(f)` is forgotten, the file remains open.
 
 In a short program, that may not matter — but in a long-running server, hundreds of such leaks will eventually exhaust file descriptors and crash the system.
 
-### 2. Early returns or exceptions skipping cleanup
+### Early returns or exceptions skipping cleanup
 
 When there are multiple return paths, it’s easy to miss one.
 
@@ -75,7 +75,7 @@ If an exception is thrown after the resource is acquired but before it’s relea
 That’s where RAII shines: it guarantees cleanup no matter how the function exits.
 
 
-### 3. Double free or invalid access
+### Double free or invalid access
 
 Sometimes you free a resource twice or use it after freeing it. That’s undefined behavior — the program might crash or behave randomly.
 
@@ -90,7 +90,7 @@ These errors are often invisible during development but cause catastrophic issue
 
 They’re also extremely hard to debug.
 
-### 4. Resource ownership confusion
+### Resource ownership confusion
 
 In large systems, it’s often unclear who *owns* a resource — who should delete it?
 
@@ -104,7 +104,7 @@ Without clear ownership rules, teams end up with leaks or double frees.
 
 RAII and smart pointers in modern C++ (like `std::unique_ptr`) solve this elegantly by encoding ownership in the type system.
 
-### 5. Missing synchronization
+### Missing synchronization
 
 When threads share resources, synchronization becomes part of resource management.
 
