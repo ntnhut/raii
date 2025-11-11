@@ -18,3 +18,4 @@ Resource Acquisition Is Initialization in C++
    pitfalls
    advanced
    large_scale
+   testing
