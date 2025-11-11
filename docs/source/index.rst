@@ -16,3 +16,4 @@ Resource Acquisition Is Initialization in C++
    benefits
    patterns
    pitfalls
+   advanced
