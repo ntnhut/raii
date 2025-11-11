@@ -17,3 +17,4 @@ Resource Acquisition Is Initialization in C++
    patterns
    pitfalls
    advanced
+   large_scale
