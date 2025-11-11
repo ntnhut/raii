@@ -21,3 +21,6 @@ Resource Acquisition Is Initialization in C++
    testing
    debug_checklist
    design_checklist
+   summary
+   quick_checklist
+   final
