@@ -7,7 +7,7 @@ In large-scale C++ projects such as databases, high-performance trading systems,
 
 RAII provides a consistent and composable framework to achieve this.
  
-## 10.1 Modular resource ownership
+## Modular resource ownership
 
 In large systems, you often have multiple layers that manage resources differently — for example:
 

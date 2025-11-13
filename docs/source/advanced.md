@@ -70,12 +70,12 @@ int main() {
 
 RAII ensures deterministic cleanup even during exceptions or early returns.
  
-## Custom Deleters for Flexible Cleanup
+## Custom deleters for flexible cleanup
 
 C++ RAII integrates beautifully with C-style APIs that use manual allocation/freeing functions.
 With `std::unique_ptr`’s **custom deleters**, you can automatically manage any C resource.
 
-### Example: Managing a C API Resource
+### Example: managing a C API resource
 
 ```cpp
 #include <iostream>

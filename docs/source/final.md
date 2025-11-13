@@ -14,3 +14,23 @@ If you’ve made it this far, you’re not just learning about C++; you’re mas
 
 > **May every scope in your code be safe, and every destructor end with purpose.**
 
+---
+
+## Your voice matters
+
+Thank you again for reading. As an author, the conversation doesn't end when the final page is written—it only begins when the book is read. Your feedback is invaluable to me for future editions and upcoming projects.
+
+### Share your experience
+
+Please consider reaching out and letting me know:
+
+* **What did you learn?** I would love to hear any "aha!" moments or what concepts fundamentally changed how you write C++.
+* **Found a bug?** Despite rigorous editing, no technical book is perfect. If you spot a typo, an unclear explanation, or a technical error, please let me know so I can correct it in the next printing.
+* **Improve the next edition:** What topic would you like to see covered in more depth? Was anything confusing or too brief?
+* **What next?** I am writing books on several C++ topics. Would you prefer a deep dive into another area of C++?
+
+### Get in touch!
+
+You can reach me directly via email nhut@nhutnguyen.com. I personally read every message.
+
+Thank you for being part of this journey.

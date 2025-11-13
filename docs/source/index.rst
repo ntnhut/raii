@@ -11,15 +11,11 @@ Resource Acquisition Is Initialization in C++
    
    intro
    resource_management
-   principle
    examples
-   benefits
-   patterns
    pitfalls
    advanced
    large_scale
    testing
-   debug_checklist
    design_checklist
    summary
    quick_checklist
