@@ -16,6 +16,7 @@
 project = 'RAII'
 copyright = '2025, Nhut Nguyen'
 author = 'Nhut Nguyen'
+date = '2025'
 
 # release = '0.1'
 # version = '0.1.1'

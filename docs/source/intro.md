@@ -1,4 +1,4 @@
-# Understanding RAII: Principles And Benefits
+# Introduction To RAII: Principles And Benefits
 
 ## What is RAII?
 
