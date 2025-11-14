@@ -58,21 +58,38 @@ In long-running applications or systems programming, even small leaks can accumu
 RAII eliminates that class of errors.
 Once you wrap a resource in an object that handles acquisition and release in its constructor/destructor, cleanup is guaranteed.
 
-## Core principles of RAII
+## Core principles: How RAII works and why it matters
 
-RAII is built on a few elegant, composable principles that work together to create rock-solid resource management.
+RAII is built on a few elegant, composable principles that work together 
+to create rock-solid resource management. Each principle solves a specific 
+problem, and together they form a system that makes entire classes of bugs 
+simply impossible.
 
 ### Resource ownership follows object lifetime
 
-In C++, every object has a lifetime — it begins when the object is constructed and ends when it goes out of scope or is destroyed.
+In C++, every object has a lifetime — it begins when the object is constructed 
+and ends when it goes out of scope or is destroyed. RAII binds the resource 
+directly to this object's lifetime, which means you can never forget to 
+release it. The type system enforces correctness automatically.
 
-RAII binds the resource (like memory, file handles, or locks) to this object's lifetime. That means when the object is created, it "acquires" the resource, and when it's destroyed, it automatically "releases" it.
+This eliminates entire classes of bugs like memory leaks from missing delete, 
+file handles not being closed properly, and locks never released due to early 
+returns or exceptions.
 
 ```cpp
-{
-    std::ofstream file("log.txt");  // resource acquired
-    file << "Writing logs..." << std::endl;
-}  // file object destroyed → resource released (file closed)
+void processFile(const char* name) {
+    // Without RAII - prone to leaks
+    FILE* f = fopen(name, "w");
+    if (!f) return;
+    fprintf(f, "Data");
+    // Oops! forgot to fclose(f);
+}
+
+void processFileRAII(const char* name) {
+    // With RAII - leak impossible
+    std::ofstream file(name);
+    file << "Data";
+} // file automatically closed when it goes out of scope
 ```
 
 Here, `file` owns the file handle. When `file` goes out of scope at the closing brace, its destructor closes the file automatically — even if the function exits early or an exception is thrown.
@@ -81,12 +98,13 @@ Here, `file` owns the file handle. When `file` goes out of scope at the closing 
 
 ### Constructor acquires, destructor releases
 
-The second principle defines how RAII works internally:
+The second principle defines how RAII works internally: the constructor 
+acquires the resource, and the destructor releases it. This is where the 
+name Resource Acquisition Is Initialization comes from.
 
-* The constructor acquires the resource.
-* The destructor releases it.
-
-This is where the name *Resource Acquisition Is Initialization* comes from: you initialize an object by acquiring its resource.
+This design makes cleanup automatic and exception-safe. You don't need to 
+sprinkle try/catch or finally blocks everywhere just to clean up resources — 
+you just use objects. The compiler guarantees the cleanup for you.
 
 Here's a simple example of a custom RAII class:
 
@@ -112,10 +130,18 @@ public:
 And how you'd use it:
 
 ```cpp
-void writeData() {
-    FileHandle file("data.txt", "w");  // constructor opens file
-    std::fprintf(file.get(), "RAII makes life easier!\n");
-}  // destructor closes file automatically
+{
+    // Manual cleanup - error prone
+    FILE* f = fopen("data.txt", "r");
+    if (!f) return;
+    doSomething(f);
+    fclose(f); // what if doSomething throws?
+}
+{
+    // RAII cleanup - automatic and safe
+    FileHandle file("data.txt", "r");
+    doSomething(file); // exception? file still closes safely
+}
 ```
 
 Even if an exception is thrown halfway through the function, the destructor still runs — ensuring the file is safely closed.
@@ -124,9 +150,17 @@ You never have to remember `fclose()`. The compiler guarantees the cleanup.
 
 ### Deterministic destruction and stack unwinding
 
-One of C++'s strongest features — and what makes RAII possible — is **deterministic destruction**.
+One of C++'s strongest features — and what makes RAII possible — is 
+deterministic destruction. When an object goes out of scope, its destructor 
+is called immediately. This happens automatically as part of stack unwinding, 
+the process that occurs when a function exits normally or due to an exception.
 
-When an object goes out of scope, its destructor is called immediately. This happens automatically as part of **stack unwinding**, the process that occurs when a function exits normally or due to an exception.
+Unlike garbage-collected languages where resource release timing is uncertain, 
+RAII gives you deterministic cleanup. Resources are released the moment an 
+object goes out of scope — not sometime later when a GC runs. This 
+predictability is crucial for real-time systems that can't tolerate GC pauses, 
+resource-constrained environments like embedded systems and games, and systems 
+where timely release matters, such as file locks and network sockets.
 
 Consider this:
 
@@ -187,11 +221,15 @@ Ownership semantics are critical in large codebases where multiple parts of the 
 
 RAII formalizes these relationships through object lifetimes.
 
-### Composition and resource hierarchies
+### Composition: building complex systems from simple parts
 
-RAII scales beautifully.
+RAII scales beautifully because it composes naturally. Objects can contain 
+other RAII-managed members, forming hierarchies of ownership. When the outer 
+object is destroyed, all its members' destructors run automatically — releasing 
+every resource in the correct order.
 
-Objects can contain other RAII-managed members, forming hierarchies of ownership. When the outer object is destroyed, all its members' destructors run automatically — releasing every resource in the correct order.
+This composability means you can easily build larger systems from smaller, 
+self-managed parts without complexity exploding.
 
 ```cpp
 #include <fstream>
@@ -210,19 +248,19 @@ public:
 };
 ```
 
-Both `std::ofstream` and `std::lock_guard` use RAII internally.
+Both `std::ofstream` and `std::lock_guard` use RAII internally. When `SafeLogger` 
+is destroyed, `file`'s destructor closes the file and `lock_guard`'s destructor 
+releases the lock. You get layered safety for free, and you can keep nesting 
+RAII objects as deep as needed without worrying about cleanup order.
 
-When `SafeLogger` is destroyed:
-* `file`'s destructor closes the file.
-* `lock_guard`'s destructor releases the lock (if active).
 
-You get layered safety for free.
+### Exception safety by design
 
-### Exception safety and predictability
-
-RAII is the foundation of exception-safe programming in C++.
-
-When all resources are tied to object lifetimes, you can write code without worrying about leaks, even in the presence of exceptions.
+RAII is the foundation of exception-safe programming in C++. When all resources 
+are tied to object lifetimes, you can write code without worrying about leaks, 
+even in the presence of exceptions. The destructor is guaranteed to run during 
+stack unwinding, ensuring that resources are safely released no matter how the 
+function exits.
 
 Without RAII:
 ```cpp
@@ -243,7 +281,9 @@ void safe() {
 }  // p's destructor runs here
 ```
 
-No try/catch or manual cleanup needed — it's all handled automatically.
+No try/catch or manual cleanup needed — it's all handled automatically. 
+Even if `doSomething()` throws ten different exceptions, your resource cleanup 
+is bulletproof.
 
 ## Why C++ is perfect for RAII
 
@@ -265,108 +305,6 @@ void safeIncrement(int& counter) {
 ```
 
 `std::lock_guard` acquires the mutex in its constructor and releases it in its destructor. You don't need to worry about unlocking — even if an exception is thrown, the lock will be released properly.
-
-## The benefits of RAII
-
-Once you understand how RAII works, its benefits become clear. It's not just a C++ idiom — it's one of the language's greatest strengths.
-
-### Safety: No more leaks or dangling resources
-
-When you rely on RAII, you no longer have to remember to manually release resources. Whether it's memory, file handles, sockets, or locks — they all get released automatically when the managing object goes out of scope.
-
-This eliminates entire classes of bugs like:
-
-* Memory leaks from missing `delete`.
-* File handles not being closed properly.
-* Locks never released due to early returns or exceptions.
-
-For example:
-
-```cpp
-#include <fstream>
-
-void writeData() {
-    std::ofstream file("output.txt");  // opens file
-    file << "Hello, RAII!";
-}  // file automatically closed when it goes out of scope
-```
-
-Here, even if an exception is thrown inside `writeData()`, the file will be safely closed — because the destructor of `std::ofstream` takes care of it.
-
-### Simplicity: Cleaner, more expressive code
-
-RAII simplifies code by expressing ownership and responsibility directly in the type system. You don't need to sprinkle `try/catch` or `finally` blocks everywhere just to clean up resources — you just use objects.
-
-Compare manual vs. RAII-based approaches:
-
-```cpp
-// Manual cleanup
-FILE* f = fopen("data.txt", "r");
-if (!f) return;
-doSomething(f);
-fclose(f);
-
-// RAII cleanup
-std::ifstream f("data.txt");
-doSomething(f);  // automatically closes
-```
-
-Less boilerplate, fewer mistakes, and clearer intent.
-
-### Exception safety: resources released even when errors occur
-
-One of the strongest motivations for RAII is **exception safety**.
-
-When exceptions occur, destructors of local objects are guaranteed to be called as the stack unwinds. That means any resource wrapped in an RAII class will be released automatically — no matter what happens.
-
-Example:
-
-```cpp
-#include <memory>
-#include <stdexcept>
-
-void riskyOperation() {
-    std::unique_ptr<int> data(new int(42));
-    throw std::runtime_error("Something went wrong");
-}  // data's destructor automatically deletes the int
-```
-
-Even though an exception is thrown, no leak occurs — RAII ensures cleanup.
-
-### Composability: RAII scales naturally
-
-RAII integrates beautifully with other abstractions. You can compose RAII objects without worrying about dependencies or cleanup order — destructors are called in the reverse order of construction, ensuring proper resource teardown.
-
-For example, a class that manages multiple resources:
-
-```cpp
-#include <fstream>
-#include <mutex>
-
-class SafeLogger {
-    std::ofstream file;
-    std::mutex mtx;
-public:
-    SafeLogger(const std::string& path) : file(path) {}
-    
-    void log(const std::string& message) {
-        std::lock_guard<std::mutex> lock(mtx);
-        file << message << '\n';
-    }
-};  // file and mutex both managed via RAII
-```
-
-When `SafeLogger` goes out of scope, the lock (if active) and the file are both released automatically — no manual cleanup required.
-
-### Predictability: You know exactly when cleanup happens
-
-Unlike garbage-collected languages where resource release timing is uncertain, RAII gives you **deterministic cleanup**. Resources are released the moment an object goes out of scope — not sometime later when a GC runs.
-
-This predictability is crucial for:
-
-* Real-time systems that can't tolerate GC pauses
-* Resource-constrained environments (embedded systems, games)
-* Systems where timely release matters (file locks, network sockets)
 
 ## A bit of history
 
