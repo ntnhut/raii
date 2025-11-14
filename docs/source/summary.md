@@ -11,6 +11,8 @@ Designing effective RAII classes means following a few key principles consistent
 Example:
 
 ```cpp
+#include <cstdio>
+
 class FileHandle {
     FILE* file_;
     

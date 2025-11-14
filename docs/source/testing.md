@@ -2,53 +2,46 @@
 
 ## Testing and verifying RAII classes
 
-When testing RAII wrappers, the goal is to verify:
-1. The resource is properly acquired during construction.
-2. The resource is properly released during destruction.
-3. No resource leaks or double deletions occur.
+When testing RAII wrappers, the goal is to verify that resources are properly 
+acquired during construction and properly released during destruction. Let's 
+test the `FileHandle` class we built in Chapter *RAII In Practice: Patterns And Examples* to demonstrate these verification 
+techniques.
 
 ### Example: Testing a FileHandle class
 
 ```cpp
-#include <cassert>
-#include <fstream>
-#include <string>
-
-class FileHandle {
-    std::FILE* file_;
-    
-public:
-    explicit FileHandle(const char* path, const char* mode)
-        : file_(std::fopen(path, mode)) {}
-    
-    ~FileHandle() {
-        if (file_) {
-            std::fclose(file_);
-            file_ = nullptr;
-        }
-    }
-    
-    std::FILE* get() const noexcept { return file_; }
-    bool is_open() const noexcept { return file_ != nullptr; }
-};
-
 void test_FileHandle() {
     const char* filename = "test_file.txt";
+    
+    // Test 1: Basic acquisition and release
     {
         FileHandle fh(filename, "w");
-        assert(fh.is_open()); // file should be open inside scope
+        assert(fh.is_open());
         std::fprintf(fh.get(), "Hello, RAII!\n");
-    } // file automatically closed here
+    } // File should be closed here
     
-    // Verify the file exists and contains expected text
-    std::ifstream fin(filename);
-    assert(fin.is_open());
+    // Test 2: Verify the file was actually written and closed
+    std::ifstream verify(filename);
+    assert(verify.is_open());
     std::string line;
-    std::getline(fin, line);
+    std::getline(verify, line);
     assert(line == "Hello, RAII!");
-    fin.close();
+    verify.close();
+    
+    // Test 3: Move operations
+    {
+        FileHandle original(filename, "w");
+        FileHandle moved = std::move(original);
+        
+        assert(!original.is_open());  // Source is now empty
+        assert(moved.is_open());       // Destination owns the file
+        
+        std::fprintf(moved.get(), "Moved successfully\n");
+    }
+    
+    // Cleanup
     std::remove(filename);
-    std::cout << "test_FileHandle passed.\n";
+    std::cout << "All FileHandle tests passed.\n";
 }
 ```
 

@@ -81,53 +81,120 @@ When `file` goes out of scope, its destructor closes the file descriptor — eve
 
 This makes file I/O exception-safe and leak-free.
 
-### Custom scoped file wrapper
+### A Complete RAII File Wrapper
 
-You can create your own scoped resource wrappers following the same pattern:
+Let's build a complete, production-quality RAII wrapper for file handles. 
+This example will demonstrate all the key principles we've discussed, and 
+we'll reference it throughout the rest of this book when exploring advanced 
+topics like move semantics, testing, and debugging.
 
 ```cpp
 #include <cstdio>
+#include <stdexcept>
+#include <utility>
 
-class ScopedFile {
-    FILE* file;
+class FileHandle {
+    FILE* file_ = nullptr;
+
 public:
-    ScopedFile(const char* path, const char* mode)
-        : file(std::fopen(path, mode)) {}
-    
-    ~ScopedFile() {
-        if (file)
-            std::fclose(file);
+    // Constructor acquires the resource
+    explicit FileHandle(const char* path, const char* mode) 
+        : file_(std::fopen(path, mode)) {
+        if (!file_) {
+            throw std::runtime_error("Failed to open file");
+        }
     }
-    
-    FILE* get() const { return file; }
-    
-    // disallow copy, allow move
-    ScopedFile(const ScopedFile&) = delete;
-    ScopedFile& operator=(const ScopedFile&) = delete;
-    ScopedFile(ScopedFile&& other) noexcept : file(other.file) {
-        other.file = nullptr;
+
+    // Destructor releases the resource
+    ~FileHandle() noexcept {
+        if (file_) {
+            std::fclose(file_);
+            file_ = nullptr;
+        }
     }
+
+    // Delete copy operations - file handles shouldn't be copied
+    FileHandle(const FileHandle&) = delete;
+    FileHandle& operator=(const FileHandle&) = delete;
+
+    // Implement move operations - ownership can be transferred
+    FileHandle(FileHandle&& other) noexcept 
+        : file_(other.file_) {
+        other.file_ = nullptr;
+    }
+
+    FileHandle& operator=(FileHandle&& other) noexcept {
+        if (this != &other) {
+            // Close our current file if we have one
+            if (file_) {
+                std::fclose(file_);
+            }
+            // Take ownership of other's file
+            file_ = other.file_;
+            other.file_ = nullptr;
+        }
+        return *this;
+    }
+
+    // Provide safe access to the underlying handle
+    FILE* get() const noexcept { return file_; }
+    
+    // Check if file is open
+    bool is_open() const noexcept { return file_ != nullptr; }
 };
 ```
+This implementation follows the Rule of Five, which states that if you 
+explicitly define any of the five special member functions (destructor, copy 
+constructor, copy assignment, move constructor, move assignment), you should 
+carefully consider all five.
 
-Usage:
+The destructor is marked noexcept because destructors should never throw 
+exceptions. During stack unwinding from an exception, if a destructor throws, 
+the program will call std::terminate and crash immediately.
+
+We delete the copy constructor and copy assignment operator because copying 
+a file handle doesn't make semantic sense. If you copied the raw FILE pointer, 
+both objects would try to close the same file when destroyed, causing undefined 
+behavior. This is called the double-free problem.
+
+However, we do implement move operations. Moving means transferring ownership 
+from one object to another. After a move, the source object no longer owns the 
+file handle, so it won't try to close it. This is safe and often necessary when 
+returning `FileHandle` objects from functions or storing them in containers.
+
+Usages:
 
 ```cpp
-void writeLog() {
-    ScopedFile log("log.txt", "w");
-    std::fprintf(log.get(), "Program started\n");
-}  // fclose automatically called
+void example_basic_usage() {
+    FileHandle file("data.txt", "w");
+    std::fprintf(file.get(), "Hello, RAII!\n");
+} // file automatically closed here
+
+void example_early_return(bool condition) {
+    FileHandle file("log.txt", "a");
+    
+    if (condition) {
+        std::fprintf(file.get(), "Early exit\n");
+        return; // file still gets closed automatically
+    }
+    
+    std::fprintf(file.get(), "Normal path\n");
+} // or here
+
+void example_exception_safety() {
+    FileHandle file("config.txt", "r");
+    
+    // Even if this throws an exception...
+    parse_complex_data(file.get());
+    
+} // ...the file is guaranteed to close
 ```
 
-This is the simplest but most important RAII pattern.
-
-It's about **scoping**: the resource's lifetime matches the scope of the managing object.
-
-You'll find this pattern in many standard library utilities like:
-
-* `std::lock_guard` – for scoped mutex locking.
-* `std::ofstream` – for scoped file output.
-* `std::unique_ptr` – for scoped heap ownership.
+This `FileHandle` class demonstrates all the RAII principles we've learned: 
+resource acquisition in the constructor, guaranteed cleanup in the destructor, 
+clear ownership semantics through deleted copy and implemented move operations, 
+and automatic exception safety. Throughout the rest of this book, when we refer 
+to `FileHandle`, we mean this implementation.
 
 ## Lock guards and scoped locks
 

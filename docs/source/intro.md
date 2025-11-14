@@ -112,18 +112,18 @@ Here's a simple example of a custom RAII class:
 #include <cstdio>
 
 class FileHandle {
-    FILE* f;
+    FILE* file_;
+    
 public:
-    explicit FileHandle(const char* filename, const char* mode)
-        : f(std::fopen(filename, mode)) {
-        if (!f) throw std::runtime_error("Failed to open file");
+    explicit FileHandle(const char* path, const char* mode)
+        : file_(std::fopen(path, mode)) {
+        if (!file_)
+            throw std::runtime_error("Failed to open file");
     }
     
-    ~FileHandle() {
-        if (f) std::fclose(f);
+    ~FileHandle() noexcept {
+        if (file_) std::fclose(file_);
     }
-    
-    FILE* get() const { return f; }
 };
 ```
 

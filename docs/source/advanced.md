@@ -4,63 +4,24 @@
 
 A good RAII class clearly expresses ownership — one object is responsible for acquiring and releasing a resource. In modern C++, move semantics make that ownership transfer safe and efficient.
 
-### Example: A simple RAII file wrapper
+In Chapter *RAII In Practice: Patterns And Examples*, we saw how our `FileHandle` class implements move operations to 
+allow ownership transfer while preventing copies. Move semantics are essential 
+for modern RAII design because they let you pass ownership of resources 
+efficiently between scopes without duplication. Let's examine how this works 
+and extend the pattern to other resource types.
 
+Recall that `FileHandle`'s move constructor looks like this:
 ```cpp
-#include <cstdio>
-#include <stdexcept>
-
-class FileHandle {
-    FILE* file = nullptr;
-public:
-    explicit FileHandle(const char* filename, const char* mode) {
-        file = std::fopen(filename, mode);
-        if (!file)
-            throw std::runtime_error("Failed to open file");
+    FileHandle(FileHandle&& other) noexcept 
+        : file_(other.file_) {
+        other.file_ = nullptr;  // Leave source in valid but empty state
     }
-    
-    // Non-copyable
-    FileHandle(const FileHandle&) = delete;
-    FileHandle& operator=(const FileHandle&) = delete;
-    
-    // Movable
-    FileHandle(FileHandle&& other) noexcept : file(other.file) {
-        other.file = nullptr;
-    }
-    
-    FileHandle& operator=(FileHandle&& other) noexcept {
-        if (this != &other) {
-            close();
-            file = other.file;
-            other.file = nullptr;
-        }
-        return *this;
-    }
-    
-    ~FileHandle() { close(); }
-    
-    void close() {
-        if (file) {
-            std::fclose(file);
-            file = nullptr;
-        }
-    }
-    
-    FILE* get() const { return file; }
-};
 ```
-
-Usage example:
-
-```cpp
-int main() {
-    FileHandle f1("data.txt", "w");
-    std::fputs("Hello RAII\n", f1.get());
-    FileHandle f2 = std::move(f1); // ownership transferred
-} // file closed automatically here
-```
-
-RAII ensures deterministic cleanup even during exceptions or early returns.
+The key insight is that after the move, the source object must be left in a 
+state where its destructor can safely run but does nothing. Setting the pointer 
+to `nullptr` accomplishes this perfectly. When the moved-from `FileHandle` is 
+eventually destroyed, its destructor checks if `file_` is `nullptr` and skips the 
+close operation if so.
 
 ## Custom deleters for flexible cleanup
 
